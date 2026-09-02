@@ -24,7 +24,7 @@ $GLOBALS['UTV_GROUPS'] = getenv('UTV_GROUPS') !== false && getenv('UTV_GROUPS') 
     ? getenv('UTV_GROUPS') : '本地,咪咕';
 $GLOBALS['CHANNEL_CACHE'] = (int)(getenv('UTV_CHANNEL_CACHE') !== false ? getenv('UTV_CHANNEL_CACHE') : 600);
 $GLOBALS['PLAYLIST_CACHE'] = (int)(getenv('UTV_PLAYLIST_CACHE') !== false ? getenv('UTV_PLAYLIST_CACHE') : 0);
-$PROXY = 'http://192.168.1.1:7890'; //这里写你的HTTP代理，需要手动改
+$PROXY = ''; //这里写你的HTTP代理，需要手动改
 $GLOBALS['PROXY'] = $PROXY !== ''
     ? $PROXY
     : (getenv('UTV_PROXY') !== false && getenv('UTV_PROXY') !== '' ? getenv('UTV_PROXY') : '');
