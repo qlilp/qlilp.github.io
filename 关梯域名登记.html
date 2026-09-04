@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>关梯域名登记</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#F5F3EC;
+    --panel:#FFFFFF;
+    --ink:#20242A;
+    --muted:#6C7480;
+    --line:#E4E0D2;
+    --line-strong:#D4CFBF;
+    --brand:#26538C;
+    --brand-soft:#E9F0F8;
+    --accent:#C4671B;
+    --accent-soft:#FBEEDD;
+    --ok:#2F7D4F;
+    --danger:#B3382E;
+    --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Consolas,"Courier New",monospace;
+    --sans:"Noto Sans SC",-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:14px;
+    line-height:1.55;
+  }
+  button{font-family:inherit;cursor:pointer}
+  input,textarea{font-family:inherit;color:var(--ink)}
+
+  .frame{max-width:1280px;margin:0 auto;padding:24px 28px 48px}
+
+  /* ===== 顶部栏 ===== */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+    padding-bottom:20px;border-bottom:2px solid var(--ink);margin-bottom:22px;
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{
+    width:44px;height:44px;flex:none;display:grid;place-items:center;
+    background:var(--ink);border-radius:8px;color:var(--bg);
+  }
+  .brand h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.5px}
+  .brand .sub{margin:2px 0 0;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .counter{
+    text-align:right;border:2px solid var(--ink);border-radius:8px;padding:8px 18px;
+    background:var(--panel);
+  }
+  .counter-num{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1;color:var(--brand)}
+  .counter-label{font-size:11px;color:var(--muted);letter-spacing:2px}
+
+  /* ===== 布局 ===== */
+  .layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    box-shadow:0 1px 2px rgba(32,36,42,.04);
+  }
+  .panel-pad{padding:18px 20px}
+
+  .panel h2{margin:0 0 14px;font-size:14px;font-weight:700;letter-spacing:1px;color:var(--ink)}
+
+  /* ===== 添加区 ===== */
+  .add-panel{margin-bottom:20px}
+  .add-panel label{display:block;font-size:13px;font-weight:700;margin-bottom:8px}
+  .add-panel textarea{
+    width:100%;min-height:88px;resize:vertical;padding:10px 12px;border:1px solid var(--line-strong);
+    border-radius:8px;background:#FBF9F3;font-family:var(--mono);font-size:13px;
+  }
+  .add-panel textarea:focus{outline:2px solid var(--brand);outline-offset:0;border-color:var(--brand)}
+  .add-actions{display:flex;align-items:center;gap:14px;margin-top:10px}
+  .hint{font-size:12px;color:var(--muted)}
+
+  .btn{
+    border:1px solid var(--line-strong);background:var(--panel);color:var(--ink);
+    border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;
+    transition:background .15s,border-color .15s;
+  }
+  .btn:hover{border-color:var(--ink)}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .btn-primary:hover{background:#B25817;border-color:#B25817}
+  .btn-secondary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+  .btn-secondary:hover{background:#1E4474;border-color:#1E4474}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--muted);padding:6px 12px;font-size:12px}
+  .btn-ghost:hover{color:var(--ink);border-color:var(--line-strong)}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .feedback{margin-top:10px;font-size:13px;min-height:20px;color:var(--ok)}
+  .feedback.warn{color:var(--accent)}
+
+  /* ===== 列表区 ===== */
+  .list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 20px 12px}
+  .list-head h2{margin:0}
+  .list-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .search{
+    padding:6px 10px;border:1px solid var(--line-strong);border-radius:8px;background:#FBF9F3;
+    font-size:13px;width:170px;
+  }
+  .search:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+  .chips{
+    display:flex;flex-wrap:wrap;gap:8px;padding:6px 20px 20px;max-height:520px;overflow:auto;
+  }
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;padding:5px 8px 5px 11px;
+    background:var(--brand-soft);border:1px solid #D4E0EF;border-radius:999px;
+    font-family:var(--mono);font-size:12.5px;color:#1E4474;
+  }
+  .chip-x{
+    display:grid;place-items:center;width:18px;height:18px;border:none;border-radius:50%;
+    background:transparent;color:#5B7599;padding:0;
+  }
+  .chip-x:hover{background:var(--danger);color:#fff}
+  .empty{color:var(--muted);font-size:13px;padding:18px 4px}
+
+  /* ===== JSON 输出 ===== */
+  .json-panel{position:sticky;top:22px;overflow:hidden}
+  .json-head{
+    display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);
+    background:#FBF9F3;
+  }
+  .json-head h2{margin:0;font-size:13px;letter-spacing:1px}
+  .live-badge{
+    display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+    color:var(--ok);border:1px solid #BFDCC9;border-radius:999px;padding:2px 10px;background:#EFF7F1;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .json-actions{margin-left:auto;display:flex;gap:8px}
+  .json-out{
+    margin:0;padding:16px 18px;font-family:var(--mono);font-size:12.5px;line-height:1.6;
+    background:#11141A;color:#D7E0EA;white-space:pre;overflow:auto;max-height:620px;
+  }
+  .json-out::selection{background:#26538C}
+
+  /* ===== 弹窗 ===== */
+  .modal-mask{
+    position:fixed;inset:0;background:rgba(32,36,42,.45);display:grid;place-items:center;z-index:50;
+  }
+  .modal{
+    width:560px;max-width:92vw;background:var(--panel);border-radius:12px;padding:22px 24px;
+    box-shadow:0 12px 40px rgba(0,0,0,.18);
+  }
+  .modal h2{margin:0 0 6px;font-size:16px}
+  .modal p{margin:0 0 14px;font-size:13px;color:var(--muted)}
+  .import-textarea{
+    width:100%;min-height:200px;resize:vertical;padding:10px 12px;border:1px solid var(--line-strong);
+    border-radius:8px;background:#FBF9F3;font-family:var(--mono);font-size:12.5px;
+  }
+  .import-textarea:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+  .hidden{display:none !important}
+
+  .toast{
+    position:fixed;left:50%;bottom:32px;transform:translateX(-50%);z-index:60;
+    background:var(--ink);color:var(--bg);padding:10px 20px;border-radius:8px;
+    font-size:13px;box-shadow:0 6px 24px rgba(0,0,0,.2);
+    opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .toast.show{opacity:1}
+
+  @media (max-width:1080px){
+    .layout{grid-template-columns:1fr}
+    .json-panel{position:static}
+  }
+
+  /* ===== 手机端自适应（≤640px） ===== */
+  @media (max-width:640px){
+    .frame{padding:14px 12px 28px}
+    body{-webkit-tap-highlight-color:transparent}
+    /* 顶部栏：改为上下排列，计数器左对齐 */
+    .topbar{flex-direction:column;align-items:stretch;gap:14px;padding-bottom:16px;margin-bottom:16px}
+    .brand h1{font-size:18px}
+    .brand .sub{font-size:11px}
+    .counter{text-align:left;display:flex;align-items:baseline;gap:10px;padding:10px 14px}
+    .counter-num{font-size:24px}
+    .counter-label{font-size:11px}
+    /* 布局：单列 + 收紧间距 */
+    .layout{gap:14px}
+    .panel-pad{padding:14px}
+    .add-panel{margin-bottom:14px}
+    .add-panel label{font-size:14px}
+    /* 输入框：16px 字号防止 iOS 聚焦自动放大 */
+    .add-panel textarea{min-height:88px;font-size:16px}
+    .add-actions{flex-wrap:wrap;gap:10px}
+    .btn{min-height:44px;padding:0 18px;font-size:15px}
+    .btn-ghost{min-height:40px;padding:0 12px;font-size:13px}
+    .hint{width:100%;font-size:11px}
+    /* 列表区 */
+    .list-head{flex-direction:column;align-items:stretch;gap:10px;padding:14px 14px 10px}
+    .list-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .search{width:100%;grid-column:1 / -1;font-size:16px;min-height:44px}
+    .list-tools .btn-ghost{width:100%}
+    .chips{padding:2px 14px 16px;max-height:none}
+    .chip{padding:8px 8px 8px 14px;font-size:13.5px}
+    .chip-x{width:26px;height:26px}
+    /* JSON 输出：按钮整行排列，内部横向滚动 */
+    .json-head{flex-wrap:wrap;padding:12px 14px}
+    .json-actions{margin-left:0;width:100%;display:flex;gap:8px}
+    .json-actions .btn{flex:1}
+    .json-out{max-height:420px;font-size:12px;padding:12px 14px;white-space:pre}
+    /* 弹窗：全屏底部弹层 */
+    .modal{width:100%;max-width:100%;min-height:100vh;border-radius:0;padding:22px 16px;display:flex;flex-direction:column}
+    .modal .import-textarea{flex:1;min-height:220px;font-size:16px}
+    .modal-actions{flex-direction:column-reverse;gap:8px}
+    .modal-actions .btn{width:100%;min-height:46px}
+    /* 提示条：贴近底部安全边距 */
+    .toast{left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));transform:none;text-align:center}
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="5" cy="6" r="2.2"></circle>
+          <circle cx="19" cy="6" r="2.2"></circle>
+          <circle cx="12" cy="18" r="2.2"></circle>
+          <path d="M7 6h10M6.8 7.6 10.7 16.4M17.2 7.6 13.3 16.4"></path>
+        </svg>
+      </div>
+      <div>
+        <h1>关梯域名登记</h1>
+        <p class="sub">代理规则 domain_suffix 维护台</p>
+      </div>
+    </div>
+    <div class="counter">
+      <div class="counter-num" id="totalCount">0</div>
+      <div class="counter-label">已收录域名</div>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <section class="col col-left">
+      <div class="panel panel-pad add-panel">
+        <label for="inputDomains">新增域名</label>
+        <textarea id="inputDomains" placeholder="粘贴域名，支持空格 / 逗号 / 换行分隔&#10;例如：lzcdn27.com  lzcdn34.com"></textarea>
+        <div class="add-actions">
+          <button id="btnAdd" class="btn btn-primary" type="button">添加域名</button>
+          <span class="hint">按 Enter 快速添加（Shift+Enter 换行）</span>
+        </div>
+        <div id="feedback" class="feedback" role="status"></div>
+      </div>
+
+      <div class="panel list-panel">
+        <div class="list-head">
+          <h2>域名清单</h2>
+          <div class="list-tools">
+            <input id="searchInput" class="search" type="text" placeholder="搜索域名…">
+            <button id="btnImport" class="btn btn-ghost" type="button">导入配置</button>
+            <button id="btnReset" class="btn btn-ghost" type="button">恢复初始</button>
+            <button id="btnClear" class="btn btn-ghost" type="button">清空列表</button>
+          </div>
+        </div>
+        <div id="chips" class="chips"></div>
+      </div>
+    </section>
+
+    <section class="col col-right">
+      <div class="panel json-panel">
+        <div class="json-head">
+          <h2>输出配置</h2>
+          <span class="live-badge"><span class="dot"></span>LIVE</span>
+          <div class="json-actions">
+            <button id="btnCopy" class="btn btn-secondary" type="button">复制 JSON</button>
+            <button id="btnDownload" class="btn btn-secondary" type="button">下载 guanti.json</button>
+          </div>
+        </div>
+        <pre id="jsonOut" class="json-out"></pre>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="importModal" class="modal-mask hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+    <h2 id="importTitle">导入配置</h2>
+    <p>粘贴完整配置 JSON（含 rules 数组），或直接粘贴每行一个的域名列表。导入会替换当前收录的域名。</p>
+    <textarea id="importText" class="import-textarea" placeholder='{"rules":[...]} 或 每行一个域名'></textarea>
+    <div class="modal-actions">
+      <button id="btnImportCancel" class="btn btn-ghost" type="button">取消</button>
+      <button id="btnImportConfirm" class="btn btn-primary" type="button">确认导入</button>
+    </div>
+    <div id="importFeedback" class="feedback"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ===== 初始配置（与 guanti.json 一致） ===== */
+  var INITIAL_CONFIG = {
+    "rules": [
+      {
+        "outbound": "direct",
+        "name": "🇨🇳关梯",
+        "switch": true,
+        "or": true,
+        "domain_suffix": [
+          "ajupf.com","essoog.com","dushe.video","cdnlz29.com","bfllvip.com","duanju84.com",
+          "ghgdm.com","yitingshu.com","lssy.net","carbonnine.com","30juz.com","58hu.com",
+          "66dpw.vip","ztzssz.com","aeete.com","fofo22.com","freeok88.com","pomo.mom",
+          "vidhub.tv","qwmkv.com","qwnull.com","qwfilm.com","qnmp4.com","qn63.com",
+          "gw7.cc","m.slwgb.com","brovod.com","gqc.ink","duan.brloop.com","wasu.cn",
+          "hebeigoogle.com","cj.lziapi.com","didahd.xyz","dmhyy.com","ww98.taiee.xyz",
+          "zndy.top","znys.top","ys2046.lat","iysdq.tv","yikucun.com","dgpengcheng.com",
+          "yxxq41.cc","zzoc.cc","cd-zj.com","maihaolian.com","zzztool.com","knvod.com",
+          "imaple8.tv","xnhrsb.com","balidwipa.com","kanju.ai","kanju20.com","zlys9.top",
+          "china-eae.com","wangfei.tv","meijutt.cc","chabeihuvideo.com","artcoast.cc",
+          "diekawang.com","lvmin.org","jennyhow.com","feikuai.in","flixflop.com",
+          "fdzys.net","mjtechinstall.com","hqvod.com","darkvod.com"
+        ]
+      }
+    ]
+  };
+
+  var LS_KEY = 'guanti-domains-v1';
+
+  /* ===== 状态 ===== */
+  var config = null;
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(LS_KEY);
+      if(raw){
+        var c = JSON.parse(raw);
+        if(c && Array.isArray(c.rules) && c.rules.length){ config = c; return; }
+      }
+    }catch(e){}
+    config = JSON.parse(JSON.stringify(INITIAL_CONFIG));
+  }
+  function save(){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(config)); }catch(e){}
+  }
+
+  function getTargetRule(){
+    var rule = null;
+    for(var i=0;i<config.rules.length;i++){
+      if(config.rules[i].name && config.rules[i].name.indexOf('关梯') !== -1){ rule = config.rules[i]; break; }
+    }
+    if(!rule) rule = config.rules[0];
+    if(!Array.isArray(rule.domain_suffix)) rule.domain_suffix = [];
+    return rule;
+  }
+
+  /* ===== DOM 引用 ===== */
+  var inputDomains = document.getElementById('inputDomains');
+  var btnAdd = document.getElementById('btnAdd');
+  var feedbackEl = document.getElementById('feedback');
+  var searchInput = document.getElementById('searchInput');
+  var chipsEl = document.getElementById('chips');
+  var btnImport = document.getElementById('btnImport');
+  var btnReset = document.getElementById('btnReset');
+  var btnClear = document.getElementById('btnClear');
+  var jsonOut = document.getElementById('jsonOut');
+  var totalCount = document.getElementById('totalCount');
+  var btnCopy = document.getElementById('btnCopy');
+  var btnDownload = document.getElementById('btnDownload');
+  var importModal = document.getElementById('importModal');
+  var importText = document.getElementById('importText');
+  var importFeedback = document.getElementById('importFeedback');
+  var btnImportConfirm = document.getElementById('btnImportConfirm');
+  var btnImportCancel = document.getElementById('btnImportCancel');
+  var toastEl = document.getElementById('toast');
+
+  /* ===== 工具 ===== */
+  var SVG_X = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+
+  function parseDomains(text){
+    var tokens = text.split(/[\s,，;；、]+/).map(function(s){return s.trim();}).filter(Boolean);
+    var seen = {};
+    var out = [];
+    for(var i=0;i<tokens.length;i++){
+      var d = tokens[i].toLowerCase();
+      d = d.replace(/^[a-z]+:\/\//,'');
+      d = d.replace(/^www\./,'');
+      d = d.split(/[/?#]/)[0];
+      d = d.split(':')[0];
+      d = d.replace(/[^a-z0-9.\-]/g,'').replace(/^\.+|\.+$/g,'');
+      if(!/^[a-z0-9]([a-z0-9-]*\.)+[a-z]{2,}$/.test(d)) continue;
+      if(seen[d]) continue;
+      seen[d] = 1;
+      out.push(d);
+    }
+    return out;
+  }
+
+  /* ===== 渲染 ===== */
+  function render(){
+    renderChips();
+    renderJson();
+  }
+
+  function renderChips(){
+    var rule = getTargetRule();
+    var q = searchInput.value.trim().toLowerCase();
+    var list = rule.domain_suffix.filter(function(d){ return q === '' || d.indexOf(q) !== -1; });
+    chipsEl.innerHTML = '';
+    if(list.length === 0){
+      var empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = (rule.domain_suffix.length === 0) ? '暂无域名，在上方输入后点击添加' : '没有匹配的域名';
+      chipsEl.appendChild(empty);
+      return;
+    }
+    list.forEach(function(d){
+      var chip = document.createElement('div');
+      chip.className = 'chip';
+      var span = document.createElement('span');
+      span.textContent = d;
+      var x = document.createElement('button');
+      x.className = 'chip-x';
+      x.type = 'button';
+      x.setAttribute('aria-label', '删除 ' + d);
+      x.innerHTML = SVG_X;
+      x.addEventListener('click', function(){ removeDomain(d); });
+      chip.appendChild(span);
+      chip.appendChild(x);
+      chipsEl.appendChild(chip);
+    });
+  }
+
+  function renderJson(){
+    var rule = getTargetRule();
+    totalCount.textContent = rule.domain_suffix.length;
+    jsonOut.textContent = JSON.stringify(config, null, 2);
+  }
+
+  /* ===== 操作 ===== */
+  function removeDomain(d){
+    var rule = getTargetRule();
+    rule.domain_suffix = rule.domain_suffix.filter(function(x){ return x !== d; });
+    save(); render();
+    setFeedback('已删除 ' + d, false);
+  }
+
+  function doAdd(){
+    var text = inputDomains.value;
+    if(!text.trim()) return;
+    var parsed = parseDomains(text);
+    var rule = getTargetRule();
+    var existing = {};
+    rule.domain_suffix.forEach(function(d){ existing[d] = 1; });
+    var added = 0, dup = 0;
+    for(var i=0;i<parsed.length;i++){
+      if(existing[parsed[i]]){ dup++; continue; }
+      existing[parsed[i]] = 1;
+      added++;
+    }
+    if(added > 0){
+      var order = rule.domain_suffix.slice();
+      var seen = {}; rule.domain_suffix.forEach(function(d){ seen[d]=1; });
+      parsed.forEach(function(d){ if(seen[d]) return; seen[d]=1; order.push(d); });
+      rule.domain_suffix = order;
+    }
+    save(); render();
+    inputDomains.value = '';
+    var msg = '';
+    if(added > 0) msg += '新增 ' + added + ' 个';
+    if(dup > 0) msg += (msg ? ' · ' : '') + '重复跳过 ' + dup + ' 个';
+    if(!msg) msg = '没有可添加的内容';
+    setFeedback(msg, added === 0);
+  }
+
+  function setFeedback(msg, warn){
+    feedbackEl.textContent = msg;
+    feedbackEl.className = 'feedback' + (warn ? ' warn' : '');
+  }
+
+  function importConfig(text){
+    text = text.trim();
+    if(!text) return '内容为空';
+    var parsed = null;
+    try{ parsed = JSON.parse(text); }catch(e){ parsed = null; }
+    if(parsed && Array.isArray(parsed.rules) && parsed.rules.length){
+      config = parsed;
+      var rule = getTargetRule();
+      if(!Array.isArray(rule.domain_suffix)) rule.domain_suffix = [];
+      save(); render();
+      return '已导入完整配置，当前收录 ' + rule.domain_suffix.length + ' 个域名';
+    }
+    if(Array.isArray(parsed) && parsed.every(function(s){ return typeof s === 'string'; })){
+      var list = parseDomains(parsed.join('\n'));
+      getTargetRule().domain_suffix = list;
+      save(); render();
+      return '已导入 ' + list.length + ' 个域名';
+    }
+    var doms = parseDomains(text);
+    if(doms.length){
+      getTargetRule().domain_suffix = doms;
+      save(); render();
+      return '已导入 ' + doms.length + ' 个域名';
+    }
+    return '无法识别内容，请粘贴 JSON 或域名列表';
+  }
+
+  /* ===== 复制 / 下载 ===== */
+  function copyText(text){
+    return new Promise(function(resolve){
+      function legacy(){
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '0';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try{ ta.setSelectionRange(0, text.length); }catch(e){}
+        var ok = false;
+        try{ ok = document.execCommand('copy'); }catch(e){ ok = false; }
+        document.body.removeChild(ta);
+        resolve(ok);
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){ resolve(true); }, legacy);
+      } else {
+        legacy();
+      }
+    });
+  }
+
+  function downloadFile(text, filename){
+    var blob = new Blob([text], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var ua = navigator.userAgent;
+    var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if(isIOS){
+      /* iOS Safari 不支持 blob 锚点下载：优先走系统分享面板 */
+      if(navigator.share){
+        try{
+          var file = new File([text], filename, {type:'application/json'});
+          navigator.share({files:[file], title: filename}).catch(function(){});
+          toast('已弹出分享面板，选择「存储到文件」即可保存');
+          setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+          return;
+        }catch(e){}
+      }
+      /* 兜底：新窗口打开内容，供长按复制 / 另存 */
+      window.open(url, '_blank');
+      toast('已在新窗口打开内容，可长按复制');
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+      return;
+    }
+
+    /* Android / 桌面：锚点下载 */
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    toast('已开始下载 ' + filename);
+  }
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(function(){ toastEl.classList.remove('show'); }, 2000);
+  }
+
+  /* ===== 事件绑定 ===== */
+  btnAdd.addEventListener('click', doAdd);
+  inputDomains.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); doAdd(); }
+  });
+  searchInput.addEventListener('input', renderChips);
+
+  btnCopy.addEventListener('click', function(){
+    copyText(JSON.stringify(config, null, 2)).then(function(ok){
+      toast(ok ? '已复制到剪贴板' : '复制失败：请点一下下方 JSON 全选后长按复制');
+    });
+  });
+
+  btnDownload.addEventListener('click', function(){
+    downloadFile(JSON.stringify(config, null, 2), 'guanti.json');
+  });
+
+  /* 点击 JSON 区域全选，方便移动端长按复制 */
+  jsonOut.addEventListener('click', function(){
+    var range = document.createRange();
+    range.selectNodeContents(jsonOut);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+
+  btnClear.addEventListener('click', function(){
+    if(!confirm('确定清空当前所有域名？')) return;
+    getTargetRule().domain_suffix = [];
+    save(); render();
+    setFeedback('已清空列表', true);
+  });
+
+  btnReset.addEventListener('click', function(){
+    if(!confirm('恢复为初始 67 个域名？当前修改将被覆盖。')) return;
+    config = JSON.parse(JSON.stringify(INITIAL_CONFIG));
+    save(); render();
+    setFeedback('已恢复初始配置', false);
+  });
+
+  /* 导入弹窗 */
+  function openImport(){
+    importText.value = '';
+    importFeedback.textContent = '';
+    importModal.classList.remove('hidden');
+    importText.focus();
+  }
+  function closeImport(){ importModal.classList.add('hidden'); }
+  btnImport.addEventListener('click', openImport);
+  btnImportCancel.addEventListener('click', closeImport);
+  importModal.addEventListener('click', function(e){ if(e.target === importModal) closeImport(); });
+  btnImportConfirm.addEventListener('click', function(){
+    var msg = importConfig(importText.value);
+    importFeedback.textContent = msg;
+    if(msg.indexOf('已导入') === 0){
+      setTimeout(closeImport, 700);
+      setFeedback(msg, false);
+    }
+  });
+  importText.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeImport();
+    if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+      e.preventDefault();
+      btnImportConfirm.click();
+    }
+  });
+
+  /* ===== 启动 ===== */
+  load();
+  render();
+  inputDomains.focus();
+})();
+</script>
+</body>
+</html>
